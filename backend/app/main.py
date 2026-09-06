@@ -1,0 +1,31 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI(
+    title="HealthDoc AI",
+    description="AI Medical Document Intelligence Platform",
+    version="1.0.0"
+)
+
+# Frontend එකෙන් request එනකොට allow කරන්න
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def home():
+    return {
+        "message": "HealthDoc AI Backend is running!",
+        "status": "ok"
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
