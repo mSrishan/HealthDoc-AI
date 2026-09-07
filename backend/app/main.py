@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from app.services.gemini_service import ask_gemini
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -29,3 +31,21 @@ def home():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+
+
+class QuestionRequest(BaseModel):
+    question: str
+
+@app.post("/ask")
+def ask_question(request: QuestionRequest):
+    try:
+        answer = ask_gemini(request.question)
+        return {
+            "question": request.question,
+            "answer": answer
+        }
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
