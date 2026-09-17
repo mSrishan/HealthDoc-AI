@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from app.services.gemini_service import ask_gemini
 from app.services.document_processor import save_pdf, extract_text_from_pdf
+from app.services.document_processor import save_pdf, extract_text_from_pdf, analyze_medical_document
 
 load_dotenv()
 
@@ -57,6 +58,30 @@ def ask_question(request: QuestionRequest):
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
+    try:
+        if not file.filename.lower().endswith(".pdf"):
+            return {"error": "Only PDF files are allowed"}
+
+        # File එක save කරනවා
+        file_path = await save_pdf(file)
+
+        # Text extract කරනවා
+        extracted_text = extract_text_from_pdf(file_path)
+
+        if not extracted_text:
+            return {"error": "Could not extract text from the PDF"}
+
+        # Gemini එකෙන් analyze කරනවා
+        summary = analyze_medical_document(extracted_text)
+
+        return {
+            "message": "PDF uploaded and analyzed successfully",
+            "filename": file.filename,
+            "summary": summary
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
     try:
         # PDF file එකද කියලා බලනවා
         if not file.filename.lower().endswith(".pdf"):
